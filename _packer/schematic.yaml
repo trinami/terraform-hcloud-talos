@@ -1,8 +1,9 @@
 # This file is used to define the schematic configuration for image factory.
 # The following extensions are required for longhorn and QEMU for example.
 customization:
-  systemExtensions:
-    officialExtensions:
-      - siderolabs/iscsi-tools
-      - siderolabs/util-linux-tools
-      - siderolabs/binfmt-misc
+    systemExtensions:
+        officialExtensions:
+            - siderolabs/binfmt-misc
+            - siderolabs/gvisor
+            - siderolabs/iscsi-tools
+            - siderolabs/util-linux-tools
