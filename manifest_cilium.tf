@@ -8,6 +8,10 @@ data "helm_template" "cilium_default" {
   version    = var.cilium_version
 
   set {
+    name  = "operator.replicas"
+    value = var.control_plane_count > 1 ? 2 : 1
+  }
+  set {
     name  = "ipam.mode"
     value = "kubernetes"
   }
@@ -41,7 +45,7 @@ data "helm_template" "cilium_default" {
   }
   set {
     name  = "k8sServiceHost"
-    value = local.local_api_host
+    value = "127.0.0.1"
   }
   set {
     name  = "k8sServicePort"

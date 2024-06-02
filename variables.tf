@@ -25,8 +25,8 @@ variable "cluster_prefix" {
 variable "cluster_api_host" {
   type        = string
   description = <<EOF
-    The entrypoint of the cluster. Must be a valid domain name. If not set, 'api.[cluster_domain]' will be used.
-    You should create a DNS record pointing to the IPs of the control plane node private IPs!
+    The entrypoint of the cluster. Must be a valid domain name. If not set, `kube.[cluster_domain]` will be used.
+    You should create a DNS record pointing to either the load balancer, floating IP, or alias IP.
   EOF
   default     = null
 }
@@ -85,6 +85,18 @@ variable "enable_floating_ip" {
   type        = bool
   default     = false
   description = "If true, a floating IP will be created and assigned to the control plane nodes."
+}
+
+variable "enable_alias_ip" {
+  type        = bool
+  default     = false
+  description = <<EOF
+      If true, an alias IP (cidrhost(node_ipv4_cidr, 100)) will be created and assigned to the control plane nodes.
+      This can lead to error messages occurring during the first bootstrap.
+      More about this here: https://github.com/siderolabs/talos/pull/8493
+      If these error messages occur, one control plane must be restarted after complete initialisation once.
+      This should resolve the error.
+  EOF
 }
 
 variable "floating_ip" {

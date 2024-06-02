@@ -4,13 +4,12 @@ resource "talos_machine_secrets" "this" {
 
 locals {
   // https://github.com/kubebn/talos-proxmox-kaas?tab=readme-ov-file#cilium-cni-configuration
-  local_api_host              = "api.${var.cluster_domain}"
+  local_api_host              = "kube.${var.cluster_domain}"
   cluster_api_host            = var.cluster_api_host != null ? var.cluster_api_host : local.local_api_host
   cluster_api_port_k8s        = 6443
   cluster_api_port_kube_prism = 7445
-  #  cluster_api_url_k8s         = "https://${local.cluster_api_host}:${local.cluster_api_port_k8s}"
-  cluster_api_url_kube_prism = "https://${local.local_api_host}:${local.cluster_api_port_kube_prism}"
-  cluster_endpoint           = local.cluster_api_url_kube_prism
+  cluster_api_url_k8s         = "https://${local.cluster_api_host}:${local.cluster_api_port_k8s}"
+  cluster_endpoint            = local.cluster_api_url_k8s
   // ************
   cert_SANs = distinct(
     concat(
@@ -20,22 +19,20 @@ locals {
       compact([
         local.local_api_host,
         local.cluster_api_host,
-        # TODO: not working atm https://github.com/siderolabs/talos/issues/3599
-        #      local.control_plane_private_ipv4_vip,
+        var.enable_alias_ip ? local.control_plane_private_vip_ipv4 : null,
         var.enable_floating_ip ? data.hcloud_floating_ip.control_plane_ipv4[0].ip_address : null,
-        #         local.control_plane_private_vip_ipv4,
       ])
     )
   )
 
-  extra_host_entries = [
+  extra_host_entries = var.enable_alias_ip ? [
     {
-      ip = "127.0.0.1"
+      ip = local.control_plane_private_vip_ipv4
       aliases = [
         local.local_api_host
       ]
     }
-  ]
+  ] : []
 }
 
 data "talos_machine_configuration" "control_plane" {
