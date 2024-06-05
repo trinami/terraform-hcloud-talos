@@ -44,6 +44,19 @@ variable "datacenter_name" {
   }
 }
 
+variable "output_mode_config_cluster_endpoint" {
+  type    = string
+  default = "public_ip"
+  validation {
+    condition     = contains(["public_ip", "private_ip", "cluster_endpoint"], var.output_mode_config_cluster_endpoint)
+    error_message = "Invalid output mode for kube and talos config endpoint."
+  }
+  description = <<EOF
+    The output mode for the cluster endpoint in the talos and kube config outputs.
+    Possible values: public_ip, private_ip, cluster_endpoint
+  EOF
+}
+
 # Firewall
 variable "firewall_use_current_ip" {
   type        = bool
@@ -91,11 +104,11 @@ variable "enable_alias_ip" {
   type        = bool
   default     = false
   description = <<EOF
-      If true, an alias IP (cidrhost(node_ipv4_cidr, 100)) will be created and assigned to the control plane nodes.
-      This can lead to error messages occurring during the first bootstrap.
-      More about this here: https://github.com/siderolabs/talos/pull/8493
-      If these error messages occur, one control plane must be restarted after complete initialisation once.
-      This should resolve the error.
+    If true, an alias IP (cidrhost(node_ipv4_cidr, 100)) will be created and assigned to the control plane nodes.
+    This can lead to error messages occurring during the first bootstrap.
+    More about this here: https://github.com/siderolabs/talos/pull/8493
+    If these error messages occur, one control plane must be restarted after complete initialisation once.
+    This should resolve the error.
   EOF
 }
 
@@ -105,9 +118,9 @@ variable "floating_ip" {
   })
   default     = null
   description = <<EOF
-      The Floating IP (ID) to use for the control plane nodes.
-      If null (default), a new floating IP will be created.
-      (using object because of https://github.com/hashicorp/terraform/issues/26755)
+    The Floating IP (ID) to use for the control plane nodes.
+    If null (default), a new floating IP will be created.
+    (using object because of https://github.com/hashicorp/terraform/issues/26755)
   EOF
 }
 
@@ -225,6 +238,18 @@ variable "worker_server_type" {
   }
 }
 
+variable "disable_x86" {
+  type        = bool
+  default     = false
+  description = "If true, x86 images will not be used."
+}
+
+variable "disable_arm" {
+  type        = bool
+  default     = false
+  description = "If true, arm images will not be used."
+}
+
 # Talos
 variable "kubelet_extra_args" {
   type        = map(string)
@@ -289,26 +314,42 @@ variable "registries" {
 # Deployments
 variable "cilium_version" {
   type        = string
-  default     = "1.15.5"
-  description = "The version of Cilium to deploy."
+  default     = null
+  description = "The version of Cilium to deploy. If not set, the latest version will be used."
 }
 
 variable "cilium_values" {
   type        = list(string)
   default     = null
   description = <<EOF
-        The values.yaml file to use for the Cilium Helm chart.
-        If null (default), the default values will be used.
-        Otherwise, the provided values will be used.
-        Example:
-        ```
-        cilium_values  = [templatefile("cilium/values.yaml", {})]
-        ```
-    EOF
+    The values.yaml file to use for the Cilium Helm chart.
+    If null (default), the default values will be used.
+    Otherwise, the provided values will be used.
+    Example:
+    ```
+    cilium_values  = [templatefile("cilium/values.yaml", {})]
+    ```
+  EOF
+}
+
+variable "cilium_enable_service_monitors" {
+  type        = bool
+  default     = false
+  description = <<EOF
+    If true, the service monitors for Prometheus will be enabled.
+    Service Monitor requires monitoring.coreos.com/v1 CRDs.
+    You can use the deploy_prometheus_operator_crds variable to deploy them.
+  EOF
+}
+
+variable "deploy_prometheus_operator_crds" {
+  type        = bool
+  default     = false
+  description = "If true, the Prometheus Operator CRDs will be deployed."
 }
 
 variable "hcloud_ccm_version" {
   type        = string
-  default     = "1.19.0"
-  description = "The version of the Hetzner Cloud Controller Manager to deploy."
+  default     = null
+  description = "The version of the Hetzner Cloud Controller Manager to deploy. If not set, the latest version will be used."
 }

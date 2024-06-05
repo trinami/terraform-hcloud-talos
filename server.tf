@@ -1,10 +1,12 @@
 data "hcloud_image" "arm" {
+  count             = var.disable_arm ? 0 : 1
   with_selector     = "os=talos"
   with_architecture = "arm"
   most_recent       = true
 }
 
 data "hcloud_image" "x86" {
+  count             = var.disable_x86 ? 0 : 1
   with_selector     = "os=talos"
   with_architecture = "x86"
   most_recent       = true
@@ -12,8 +14,8 @@ data "hcloud_image" "x86" {
 
 locals {
   cluster_prefix         = var.cluster_prefix ? "${var.cluster_name}-" : ""
-  control_plane_image_id = substr(var.control_plane_server_type, 0, 3) == "cax" ? data.hcloud_image.arm.id : data.hcloud_image.x86.id
-  worker_image_id        = substr(var.worker_server_type, 0, 3) == "cax" ? data.hcloud_image.arm.id : data.hcloud_image.x86.id
+  control_plane_image_id = substr(var.control_plane_server_type, 0, 3) == "cax" ? data.hcloud_image.arm[0].id : data.hcloud_image.x86[0].id
+  worker_image_id        = substr(var.worker_server_type, 0, 3) == "cax" ? data.hcloud_image.arm[0].id : data.hcloud_image.x86[0].id
   control_planes = [for i in range(var.control_plane_count) : {
     index              = i
     name               = "${local.cluster_prefix}control-plane-${i + 1}"
@@ -40,6 +42,9 @@ resource "tls_private_key" "ssh_key" {
 resource "hcloud_ssh_key" "this" {
   name       = "${local.cluster_prefix}default"
   public_key = coalesce(var.ssh_public_key, can(tls_private_key.ssh_key[0].public_key_openssh) ? tls_private_key.ssh_key[0].public_key_openssh : null)
+  labels = {
+    "cluster" = var.cluster_name
+  }
 }
 
 resource "hcloud_server" "control_planes" {
@@ -53,7 +58,8 @@ resource "hcloud_server" "control_planes" {
   placement_group_id = hcloud_placement_group.control_plane.id
 
   labels = {
-    "role" = "control-plane"
+    "cluster" = var.cluster_name,
+    "role"    = "control-plane"
   }
 
   firewall_ids = [
@@ -70,7 +76,7 @@ resource "hcloud_server" "control_planes" {
   network {
     network_id = hcloud_network_subnet.nodes.network_id
     ip         = each.value.ipv4_private
-    alias_ips  = var.enable_alias_ip && each.value.index == 0 ? [local.control_plane_private_vip_ipv4] : []
+    alias_ips  = [] # fix for https://github.com/hetznercloud/terraform-provider-hcloud/issues/650
   }
 
   depends_on = [
@@ -97,7 +103,8 @@ resource "hcloud_server" "workers" {
   placement_group_id = hcloud_placement_group.worker.id
 
   labels = {
-    "role" = "worker"
+    "cluster" = var.cluster_name,
+    "role"    = "worker"
   }
 
   firewall_ids = [
@@ -114,6 +121,7 @@ resource "hcloud_server" "workers" {
   network {
     network_id = hcloud_network_subnet.nodes.network_id
     ip         = each.value.ipv4_private
+    alias_ips  = [] # fix for https://github.com/hetznercloud/terraform-provider-hcloud/issues/650
   }
 
   depends_on = [
