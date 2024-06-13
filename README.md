@@ -98,7 +98,7 @@ This repository contains a Terraform module for creating a Kubernetes cluster wi
 
 ### Packer
 
-Create the talos os images (AMD and x86) via packer through running the [create.sh](_packer/create.sh).
+Create the talos os images (ARM and x86) via packer through running the [create.sh](_packer/create.sh).
 It is using the `HCLOUD_TOKEN` environment variable to authenticate against the Hetzner Cloud API and uses the project
 of the token to store the images.
 The talos os version is defined in the variable `talos_version`
@@ -215,10 +215,6 @@ kernel_modules_to_load = [
 - IPv6 dual stack is not supported by Talos yet. You can activate IPv6 with `enable_ipv6`, but it should not have any
   effect.
 - `enable_kube_span` let's the cluster not get in ready state. It is not clear why yet. I have to investigate it.
-
-## Future Plans
-
-- [ ] Add Hetzner Cloud CSI Driver
 
 ## Credits
 

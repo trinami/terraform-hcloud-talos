@@ -103,6 +103,9 @@ locals {
             name = "none"
           }
         }
+        coreDNS = {
+          disabled = var.disable_talos_coredns
+        }
         proxy = {
           disabled = true
         }
@@ -151,7 +154,7 @@ locals {
         externalCloudProvider = {
           enabled = true
           manifests = [
-            "https://raw.githubusercontent.com/siderolabs/talos-cloud-controller-manager/v1.4.0/docs/deploy/cloud-controller-manager-daemonset.yml"
+            "https://raw.githubusercontent.com/siderolabs/talos-cloud-controller-manager/v1.6.0/docs/deploy/cloud-controller-manager-daemonset.yml"
           ]
         }
       }
