@@ -149,6 +149,16 @@ locals {
                 token   = base64encode(var.hcloud_token)
               }
             }), "\"", "")
+          },
+          {
+            name = "namespace-longhorn-system"
+            contents = replace(yamlencode({
+              apiVersion = "v1"
+              kind       = "Namespace"
+              metadata = {
+                name = "longhorn-system"
+              }
+            }), "\"", "")
           }
         ]
         externalCloudProvider = {
