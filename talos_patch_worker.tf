@@ -22,6 +22,18 @@ locals {
               local.node_ipv4_cidr
             ]
           }
+          extraMounts = [
+            {
+              destination = "/var/lib/longhorn"
+              type        = "bind"
+              source      = "/var/lib/longhorn"
+              options     = [
+                "bind",
+                "rshared",
+                "rw"
+              ]
+            }
+          ]
         }
         network = {
           extraHostEntries = local.extra_host_entries
