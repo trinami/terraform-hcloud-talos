@@ -52,8 +52,9 @@ variable "output_mode_config_cluster_endpoint" {
     error_message = "Invalid output mode for kube and talos config endpoint."
   }
   description = <<EOF
-    The output mode for the cluster endpoint in the talos and kube config outputs.
+    Configure which IP addresses are to be used in Talos- and Kube-config output.
     Possible values: public_ip, private_ip, cluster_endpoint
+    ATTENTION: If 'cluster_endpoint' is selected, 'cluster_api_host' is used and should be set, too.
   EOF
 }
 
@@ -102,13 +103,9 @@ variable "enable_floating_ip" {
 
 variable "enable_alias_ip" {
   type        = bool
-  default     = false
+  default     = true
   description = <<EOF
     If true, an alias IP (cidrhost(node_ipv4_cidr, 100)) will be created and assigned to the control plane nodes.
-    This can lead to error messages occurring during the first bootstrap.
-    More about this here: https://github.com/siderolabs/talos/pull/8493
-    If these error messages occur, one control plane must be restarted after complete initialisation once.
-    This should resolve the error.
   EOF
 }
 
@@ -213,6 +210,7 @@ variable "control_plane_server_type" {
 
 variable "worker_count" {
   type        = number
+  default     = 0
   description = "The number of worker nodes to create. Maximum 99."
   validation {
     condition     = var.worker_count <= 99
@@ -222,6 +220,7 @@ variable "worker_count" {
 
 variable "worker_server_type" {
   type        = string
+  default     = "cx11"
   description = <<EOF
     The server type to use for the worker nodes.
     Possible values: cx11, cx21, cx22, cx31, cx32, cx41, cx42, cx51, cx52, cpx11, cpx21, cpx31,
@@ -265,8 +264,11 @@ variable "kube_api_extra_args" {
 
 variable "kubernetes_version" {
   type        = string
-  default     = null
-  description = "The Kubernetes version to use. If not set, the latest version supported by Talos is used."
+  default     = "1.30.3"
+  description = <<EOF
+    The Kubernetes version to use. If not set, the latest version supported by Talos is used: https://www.talos.dev/v1.7/introduction/support-matrix/
+    Needs to be compatible with the `cilium_version`: https://docs.cilium.io/en/stable/network/kubernetes/compatibility/
+  EOF
 }
 
 variable "sysctls_extra_args" {
@@ -314,8 +316,11 @@ variable "registries" {
 # Deployments
 variable "cilium_version" {
   type        = string
-  default     = null
-  description = "The version of Cilium to deploy. If not set, the latest version will be used."
+  default     = "1.16.2"
+  description = <<EOF
+    The version of Cilium to deploy. If not set, the `1.16.0` version will be used.
+    Needs to be compatible with the `kubernetes_version`: https://docs.cilium.io/en/stable/network/kubernetes/compatibility/
+  EOF
 }
 
 variable "cilium_values" {
@@ -330,6 +335,12 @@ variable "cilium_values" {
     cilium_values  = [templatefile("cilium/values.yaml", {})]
     ```
   EOF
+}
+
+variable "cilium_enable_encryption" {
+  type        = bool
+  default     = false
+  description = "Enable transparent network encryption."
 }
 
 variable "cilium_enable_service_monitors" {
