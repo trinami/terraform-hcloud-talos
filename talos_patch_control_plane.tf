@@ -60,6 +60,7 @@ locals {
           {
             "net.core.somaxconn"          = "65535"
             "net.core.netdev_max_backlog" = "4096"
+            "user.max_user_namespaces"    = "11255"
           },
           var.sysctls_extra_args
         )
@@ -148,16 +149,6 @@ locals {
               data = {
                 network = base64encode(hcloud_network.this.id)
                 token   = base64encode(var.hcloud_token)
-              }
-            }), "\"", "")
-          },
-          {
-            name = "namespace-longhorn-system"
-            contents = replace(yamlencode({
-              apiVersion = "v1"
-              kind       = "Namespace"
-              metadata = {
-                name = "longhorn-system"
               }
             }), "\"", "")
           }
