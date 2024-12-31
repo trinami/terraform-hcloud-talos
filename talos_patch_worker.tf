@@ -22,18 +22,6 @@ locals {
               local.node_ipv4_cidr
             ]
           }
-          extraMounts = [
-            {
-              destination = "/var/lib/longhorn"
-              type        = "bind"
-              source      = "/var/lib/longhorn"
-              options     = [
-                "bind",
-                "rshared",
-                "rw"
-              ]
-            }
-          ]
         }
         network = {
           extraHostEntries = local.extra_host_entries
@@ -50,6 +38,7 @@ locals {
           {
             "net.core.somaxconn"          = "65535"
             "net.core.netdev_max_backlog" = "4096"
+            "user.max_user_namespaces"    = "11255"
           },
           var.sysctls_extra_args
         )
