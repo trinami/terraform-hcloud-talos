@@ -22,6 +22,18 @@ locals {
               local.node_ipv4_cidr
             ]
           }
+          extraMounts = [
+            {
+              destination = "/var/local-path-provisioner"
+              type        = "bind"
+              source      = "/var/local-path-provisioner"
+              options     = [
+                "bind",
+                "rshared",
+                "rw"
+              ]
+            }
+          ]
         }
         network = {
           extraHostEntries = local.extra_host_entries
